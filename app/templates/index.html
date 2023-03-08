@@ -1,65 +1,366 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>360&deg; Image Gallery</title>
-    <meta name="description" content="360&deg; Image Gallery - A-Frame">
-    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-event-set-component@5/dist/aframe-event-set-component.min.js"></script>
-    <script src="https://unpkg.com/aframe-layout-component@5.3.0/dist/aframe-layout-component.min.js"></script>
-    <script src="https://unpkg.com/aframe-template-component@3.2.1/dist/aframe-template-component.min.js"></script>
-    <script src="https://unpkg.com/aframe-proxy-event-component@2.1.0/dist/aframe-proxy-event-component.min.js"></script>
-    
-    <!-- Image link template to be reused. -->
-    <script id="link" type="text/html">
-      <a-entity class="link"
-        geometry="primitive: plane; height: 1; width: 1"
-        material="shader: flat; src: ${thumb}"
-        event-set__mouseenter="scale: 1.2 1.2 1; _target: #desc; _delay: 300; material.src: ${src}"
-        event-set__mouseleave="scale: 1 1 1; _target: #desc; _delay: 300; material.src: #none"
-        event-set__click="_target: #desc; _delay: 300; material.src: ${src}"
-        proxy-event="event: click; to: #desc; as: fade"></a-entity>
-    </script>
-
-    <!-- desc -->
-    <script id="desc" type="text/html">
-      <a-entity class="desc"
-        geometry="primitive: plane; height: 1; width: 2"></a-entity>
-    </script>
-  </head>
-  <body>
-    <a-scene>
-      <a-assets>
-        <img id="city" src="static/hongkong_small.jpg">
-        <img id="none" src="static/none.png">
-        <img id="city-desc" src="static/hongkong_desc.jpg">
-        <img id="city-thumb" src="static/thumb-city.jpg">
-
-      </a-assets>
-
-      <!-- 360-degree image. -->
-      <a-sky id="image-360" radius="10" src="#city"></a-sky>
-
-      <!-- Image links. -->
-      <a-entity id="links" layout="type: line; margin: 1.5" position="0 0 -4" rotation="0 0 0">
-        <a-entity template="src: #link" data-src="#city-desc" data-thumb="#city-thumb"></a-entity>
-      </a-entity>
-
-      <!-- Image links. -->
-      <a-entity id="descs" layout="type: line; margin: 1.5" position="0 -1.5 -4" rotation="0 0 0">
-        <a-image  id="desc" src="#none" width="2"></a-image>
-      </a-entity>
-
-      <!-- Camera + cursor. -->
-      <a-entity camera look-controls>
-        <a-cursor
-          id="cursor"
-          animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
-          animation__fusing="property: fusing; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
-          event-set__mouseenter="_event: mouseenter; color: springgreen"
-          event-set__mouseleave="_event: mouseleave; color: black"
-          raycaster="objects: .link"></a-cursor>
-      </a-entity>
-    </a-scene>
-  </body>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>gold3</title>
+	<script src="static/aframe.min.js"></script>
+	<!-- <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script> -->
+	<script src="static/jquery.min.js"></script>
+	<style>
+		body {
+			clear: both;
+		}
+	
+		.container {
+			position: absolute;
+			width: 100%;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			-ms-transform: translate(-50%, -50%);
+			z-index: 1000;
+			visibility: visible;
+		}
+	
+		.btn {
+			position: absolute;
+			left: 50%;
+			top: 0;
+			transform: translate(-50%, -50%);
+			-ms-transform: translate(-50%, -50%);
+			border-radius: 5px;
+			padding: 16px 30px;
+			text-align: center;
+			cursor: pointer;
+			text-decoration: none;
+			color: black;
+			background-color: darkgrey;
+			font-size: 40px;
+		}
+	</style>
+</head>
+<body>
+	<a-scene id="mainscene" visible="false">
+		<a-assets>
+		
+			<img id="bg" crossorigin="anonymous" src="static/bg3.jpg">
+			<img id="start" crossorigin="anonymous" src="static/start.png">
+			<img id="star" crossorigin="anonymous" src="static/star.png">
+			<img id="arrow" crossorigin="anonymous" src="static/arrow.png">
+			<img id="correct" crossorigin="anonymous" src="static/correct.png">
+			<img id="wrong" crossorigin="anonymous" src="static/wrong.png">
+		</a-assets>
+		<!-- bg -->
+		<a-sky src="#bg" radius="15" rotation="2 0 -1"></a-sky>
+		<!-- objs -->
+		<a-entity class="blackboard" position="-2 2.75 -5" rotation="0 0 0"  visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image class="link" src="#star" width="1.2" height="0.65"></a-image>
+		</a-entity>
+		<a-entity class="blackboard_select" position="-2 2.5 -5" rotation="180 0 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#arrow" width="1.3" height="1.3"></a-image>
+		</a-entity>
+		<a-entity class="blackboard_check" position="-2 2.75 -5" rotation="0 0 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#correct" width=".5" height=".5"></a-image>
+		</a-entity>
+		
+		<a-entity class="broom" position="-5 0.2 1.3" rotation="0 90 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image class="link" src="#star" width="0.9" height="0.5"></a-image>
+		</a-entity>
+		<a-entity class="broom_select" position="-5 0 1.3" rotation="180 90 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#arrow" width="1" height="1"></a-image>
+		</a-entity>
+		<a-entity class="broom_check" position="-5 0.2 1.3" rotation="0 90 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#correct" width=".4" height=".4"></a-image>
+		</a-entity>
+		
+		<a-entity class="desk" position="-3 -1.2 -5" rotation="0 0 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image class="link" src="#star" width="1.4" height="0.72"></a-image>
+		</a-entity>
+		<a-entity class="desk_select" position="-3 -1.5 -5" rotation="180 0 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#arrow" width="1.5" height="1.5"></a-image>
+		</a-entity>
+		<a-entity class="desk_check" position="-3 -1.2 -5" rotation="0 0 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#correct" width=".5" height=".5"></a-image>
+		</a-entity>
+		
+		<a-entity class="door" position="-4 0 -0.08" rotation="0 90 270" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image class="link" src="#star" width="0.9" height="0.5"></a-image>
+		</a-entity>
+		<a-entity class="door_select" position="-4 0 -0.26" rotation="0 90 270" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#arrow" width="1" height="1"></a-image>
+		</a-entity>
+		<a-entity class="door_check" position="-4 0 -0.08" rotation="0 90 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#correct" width=".4" height=".4"></a-image>
+		</a-entity>
+		
+		<a-entity class="scissors" position="4 -3.8 3.5" rotation="10 90 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image class="link" src="#star" width="2.8" height="1.5"></a-image>
+		</a-entity>
+		<a-entity class="scissors_select" position="4 -4.5 3.5" rotation="10 90 180" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#arrow" width="3" height="3"></a-image>
+		</a-entity>
+		<a-entity class="scissors_check" position="4 -3.8 3.5" rotation="0 270 0" visible="false"
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image src="#correct" width="1" height="1"></a-image>
+		</a-entity>
+		
+		<!-- startBtn -->
+		<!-- position="-6 1.5 -5" rotation="0 0 0" -->
+		<a-entity class="start" start-btn position="1.5 1 -5" rotation="0 0 0" 
+			event-set__mouseenter="scale: 1.2 1.2 1" event-set__mouseleave="scale: 1 1 1" canvas-updater>
+			<a-image class="link" src="#start" width=".8" height=".8"></a-image>
+		</a-entity>
+		<!-- text -->
+		<a-text font="kelsonsans" value="Press here!" width="6" position="0.8 1.7 -5" rotation="0 0 0" >
+		</a-text>
+		<a-text id="res-count" font="kelsonsans" value="Result(0/5)" width="6" position="-3 1.5 -5"
+			rotation="0 0 0">
+		</a-text>
+		<a-box opacity="0.3" color="white" width="2.5" height="2.5" depth="0.001" position="-1.8 0.5 -5"
+			rotation="0 0 0">
+			<a-entity class="blackboard-text" visible="false">
+				<a-image class="checkImg" src="#wrong" width="0.5" height="0.5" position="-0.2 1.7 -5"></a-image>
+				<a-text font="kelsonsans" color="white" align="left" baseline="center" position="-1.2 0.6 0"
+					wrap-count="35" value="blackboard">
+				</a-text>
+			</a-entity>
+			<a-entity class="broom-text" visible="false">
+				<a-image class="checkImg" src="#wrong" width="0.5" height="0.5" position="-0.2 0.9 -5"></a-image>
+				<a-text font="kelsonsans" color="white" align="left" baseline="center" position="-1.2 0.2 0"
+					wrap-count="35" value="broom">
+				</a-text>
+			</a-entity>
+			<a-entity class="desk-text" visible="false">
+				<a-image class="checkImg" src="#wrong" width="0.5" height="0.5" position="-0.2 0.1 -5"></a-image>
+				<a-text font="kelsonsans" color="white" align="left" baseline="center" position="-1.2 -0.2 0"
+					wrap-count="35" value="desk"></a-text>
+			</a-entity>
+			<a-entity class="door-text" visible="false">
+				<a-image class="checkImg" src="#wrong" width="0.5" height="0.5" position="-0.2 -0.7 -5">
+				</a-image>
+				<a-text font="kelsonsans" color="white" align="left" baseline="center" position="-1.2 -0.6 0"
+					wrap-count="35" value="door">
+				</a-text>
+			</a-entity>
+			<a-entity class="scissors-text" visible="false">
+				<a-image class="checkImg" src="#wrong" width="0.5" height="0.5" position="-0.2 -1.6 -5"></a-image>
+				<a-text font="kelsonsans" color="white" align="left" baseline="center" position="-1.2 -1 0"
+					wrap-count="35" value="scissors">
+				</a-text>
+			</a-entity>
+		</a-box>
+		
+		<!-- Camera + cursor. -->
+		<a-entity>
+			<a-entity camera look-controls wasd-controls id=camera>
+				<a-entity position="0 0 -3"
+					animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 1 1 1; to: 1 1 1"
+					animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 5500; from: 1 1 1; to: 10 10 10"
+					animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"
+					geometry="primitive: ring; radiusInner: 0.02; radiusOuter: 0.03;"
+					material="color: black; shader: flat" cursor="maxDistance: 30; fuse: true; fuseTimeout:5500"
+					raycaster="objects: .link">
+				</a-entity>
+			</a-entity>
+		</a-entity>
+		<!-- end scene -->
+	</a-scene>
+	<audio preload controls id="sound" visible="false">
+		<source src="static/gold_3.mp3" type="audio/mpeg">
+		<source src="static/gold_3.ogg" type="audio/ogg">
+	</audio>
+	<div class="container" >
+		<button class="btn">Start</button>
+	</div>
+	
+	<script>
+		var words =["blackboard","broom","desk","door","scissors"]
+		// var dur = [4, 7, 9.3, 11.5, 14.2]
+		var end = 15.6
+		var aobj ={
+			'blackboard':[4.7,5.8],
+			'broom':[7,8],
+			'desk':[9.3,10.2],
+			'door':[11.4,12.3],
+			'scissors':[14.2,15.2]
+		}
+		let index = 0
+		let answer = ''
+		var flag = 0
+		var a =document.getElementById('sound');
+		AFRAME.registerComponent('start-btn', {
+			schema: {
+				target: {
+					type: 'selector'
+				},
+				
+			},
+			init: function() {
+				var data = this.data;
+				var el = this.el;
+				var _timer;
+				el.addEventListener("mouseenter", function() {
+					if (_timer) {
+						clearTimeout(_timer);
+					}
+					_timer = setTimeout(function() {
+						// 选对才播放下一个 
+						if (flag) {
+							index++;
+						}
+						let word = words[index]
+						a.currentTime = aobj[word][0]
+						a.play();
+						answer = words[index]
+						console.log('answer=', answer,index,word);
+						flag = 0;
+						
+						let dur =Math.ceil((aobj[word][1] - aobj[word][0]) *1000) 
+						setTimeout(function() {
+							a.pause()
+						}, dur)
+					}, 5500);
+				});
+				el.addEventListener("mouseleave", function() {
+					if (_timer) {
+						clearTimeout(_timer);
+						_timer = null;
+					}
+				});
+			}
+		});
+		function sceneInit(){
+			var answer_timer;
+			for (i in words) {
+				var el =document.getElementsByClassName(words[i])[0]
+				el.addEventListener('mouseenter',function(e){
+					let _this = this
+					let className = _this.className
+					let _select = document.getElementsByClassName(className+'_select')[0]
+					let _check = document.getElementsByClassName(className+'_check')[0]
+					let u_answer = className
+					_select.setAttribute("visible", true);
+				
+					if (answer_timer) {
+						clearTimeout(answer_timer);
+					}
+					answer_timer = setTimeout(function() {
+							if (answer != '') {
+								var text_el = document.getElementsByClassName(answer+'-text')[0]
+								// 显示答案
+								if (!document.getElementsByClassName(answer+'-text')[0].getAttribute('visible')) {
+									document.getElementsByClassName(answer+'-text')[0].setAttribute('visible', "true")
+								}
+								if (u_answer === answer) {
+									//更改符号
+									text_el.children[0].setAttribute('src', "#correct")
+									_check.children[0].setAttribute('src', "#correct")
+									_check.setAttribute("visible", true)
+									sound.currentTime = 0
+									sound.play();
+									setTimeout(function() {
+										sound.pause()
+										// todo 改成特效？
+										if (index+1 == words.length) {
+											alert('You have completed this course！');
+											document.getElementsByClassName('btn')[0].innerHTML="Learn again!",
+											document.getElementById('mainscene').setAttribute('visible', 'false')
+											document.getElementById('sound').style.display="none"
+											// document.getElementsByClassName('container')[0].visibility="visible"
+											// document.getElementsByClassName('btn')[0].visibility="visible"
+											$('.container').show()
+										}
+									}, 1500)
+									console.log('正确')
+									// 取消跟踪
+									_this.children[0].classList.remove("link")
+									flag = 1;
+									let count = parseInt(index+1)
+									document.getElementById('res-count').setAttribute("value", "Result(" + count + "/5)")
+									// 标记：答对之后，开始下一题之前，不要再播放错误音频
+									answer = ''
+								} else {
+									let word = words[index]
+									console.log('错误',word)
+									flag = 0;
+									sound.currentTime = 2
+									sound.play();
+									_check.children[0].setAttribute('src', "#wrong")
+									_check.setAttribute("visible", true)
+									
+									let dur =Math.ceil((aobj[word][1] - aobj[word][0]) *1000) 
+									setTimeout(function() {
+										sound.pause()
+										sound.currentTime = aobj[word][0]
+										sound.play();
+										setTimeout(function() {
+											sound.pause()
+										}, dur)
+									}, 1500)
+								}
+							} else {
+								//提示去点击播放按钮 todo
+								// if (answer == '') {
+								// 	console.log($(_this)[0].getAttribute('position'),$(_this)[0].getAttribute('rotation'))
+								// }
+					
+							}
+						}, 5500);
+					
+					
+				})
+				
+				el.addEventListener('mouseleave', function(event){
+					
+					let _this = this;
+					_this.setAttribute("visible", false);
+					let obj_name = _this.className
+						document.getElementsByClassName(obj_name+'_select')[0].setAttribute('visible', "false")
+					// // 有镜头追踪时候才隐藏
+					if (_this.children[0].classList.contains('link')) {
+						document.getElementsByClassName(obj_name+'_check')[0].setAttribute('visible', "false")
+					}
+					if (answer_timer) {
+						clearTimeout(answer_timer);
+						answer_timer = null;
+					}
+				
+				});
+			}
+		}
+		sceneInit()
+		
+		document.getElementsByClassName('btn')[0].addEventListener('click',function(){
+			var _this = this
+			// this.parentNode.style.visibility="hidden";
+			$('.container').hide()
+			document.getElementById('mainscene').setAttribute('visible', "true")
+			document.getElementById('mainscene').style.display='block'
+			sound.play();
+			sound.pause();
+			sound.currentTime = end;
+			// alert(sound.currentTime)
+			sound.play();
+		})
+		
+		
+		
+	</script>
+</body>
 </html>
